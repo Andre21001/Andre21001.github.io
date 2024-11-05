@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Cost Calculator</title>
+    <script src="script.js"></script>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Sidebar styling */
+        .tabs {
+            width: 200px;
+            background-color: #f8f9fa;
+            border-right: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-button {
+            padding: 15px;
+            text-align: left;
+            cursor: pointer;
+            border: none;
+            background: #f8f9fa;
+            transition: background-color 0.3s;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .tab-button:hover {
+            background-color: #e9f5ff;
+        }
+
+        .tab-button.active {
+            background-color: #e9f5ff;
+            color: #007bff;
+            border-left: 4px solid #007bff;
+        }
+
+        /* Content area styling */
+        .tab-content {
+            display: none;
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input,
+        button {
+            padding: 8px;
+            margin-top: 5px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        /* Autocomplete suggestion box styling */
+        .autocomplete-suggestions {
+            position: absolute;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100%;
+            display: block;
+
+        }
+
+        .suggestion-item {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ccc;
+            text-align: left;
+            padding: 10px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .editable {
+            background-color: #e9f5ff;
+        }
+
+        .formula-info {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .collapsible {
+            background-color: #f8f9fa;
+            color: #333;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .collapsible.active, .collapsible:hover {
+            background-color: #e9f5ff;
+        }
+
+        .collapsible-content {
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Service Cost Calculator</h2>
+
+        <!-- Tab navigation -->
+        <div class="tabs">
+            <button class="tab-button" onclick="openTab(event, 'localpurchase')">LocalPurchase</button>
+            <button class="tab-button" onclick="openTab(event, 'material')">Material</button>
+            <button class="tab-button" onclick="openTab(event, 'manufacturing')">Manufacturing</button>
+            <button class="tab-button" onclick="openTab(event, 'consummable')">Consummable</button>
+            <button class="tab-button" onclick="openTab(event, 'labour')">Labour</button>
+        </div>
+
+        <!-- Tab content (3 tabs with similar input) -->
+        <div id="localpurchase" class="tab-content">
+            <h3>LocalPurchase</h3>
+            <div class="input-section">
+                <!-- Input fields for Tab 1, Tab 2, and Tab 3 -->
+                <label for="description">Description:</label>
+                <input type="text" id="description-localpurchase" placeholder="Enter Description"
+                    oninput="showDescriptionSuggestions('localpurchase')">
+                <div id="description-suggestions-localpurchase" class="autocomplete-suggestions"></div>
+
+                <label for="partNumber">Part Number:</label>
+                <input type="text" id="partNumber-localpurchase" placeholder="Enter Part Number"
+                    oninput="showPartNumberSuggestions('localpurchase')">
+                <div id="partNumber-suggestions-localpurchase" class="autocomplete-suggestions"></div>
+
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity-localpurchase" min="1" value="1">
+
+                <label for="pricePerPcs">Price per PCS:</label>
+                <input type="number" id="pricePerPcs-localpurchase" step="0.01" min="0" value="0">
+
+                <!-- Total Calculation Display -->
+                <label for="calculated-temp">Calculated Total:</label>
+                <input type="number" id="calculated-temp-localpurchase" readonly>
+
+                <button onclick="addRow('localpurchase')">Add to Table</button>
+            </div>
+            <table id="serviceTable-localpurchase" class="service-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Part Number</th>
+                        <th>Quantity</th>
+                        <th>Price per PCS</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Tab 2 and 3 would have the same input fields and table structure as Tab 1 -->
+        <div id="consummable" class="tab-content">
+            <h3>Consummable</h3>
+            <div class="input-section">
+                <!-- Same input and table structure as Tab 1 -->
+                <label for="description">Description:</label>
+                <input type="text" id="description-consummable" placeholder="Enter Consummable"
+                    oninput="showDescriptionSuggestions('consummable')">
+                <div id="description-suggestions-consummable" class="autocomplete-suggestions"></div>
+
+                <label for="partNumber">Part Number:</label>
+                <input type="text" id="partNumber-consummable" placeholder="Enter Part Number"
+                    oninput="showPartNumberSuggestions('consummable')">
+                <div id="partNumber-suggestions-consummable" class="autocomplete-suggestions"></div>
+
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity-consummable" min="1" value="1">
+
+                <label for="pricePerPcs">Price per PCS:</label>
+                <input type="number" id="pricePerPcs-consummable" step="0.01" min="0" value="0">
+
+                <!-- Total Calculation Display -->
+                <label for="calculated-temp">Calculated Total:</label>
+                <input type="number" id="calculated-temp-consummable" readonly>
+
+                <button onclick="addRow('consummable')">Add to Table</button>
+            </div>
+            <table id="serviceTable-consummable" class="service-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Part Number</th>
+                        <th>Quantity</th>
+                        <th>Price per PCS</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="material" class="tab-content">
+            <h3>Material</h3>
+            <div class="input-section">
+                <!-- Input Description -->
+                <label for="description-material">Description:</label>
+                <input type="text" id="description-material" placeholder="Enter Material Description">
+
+                <!-- Input Grade Material -->
+                <label for="grade-material">Grade Material:</label>
+                <input type="text" id="grade-material" placeholder="Select Grade Material"
+                    oninput="showGradeSuggestions()">
+                <div id="grade-suggestions" class="autocomplete-suggestions"></div>
+
+                <!-- Material Price -->
+                <label for="material-price">Material Price:</label>
+                <input type="number" id="material-price" step="0.01" placeholder="Enter Material Price or Select"
+                    oninput="calculatePricePerPcs()">
+
+                <!-- input and label for material type (bar, plate, rod) -->
+                <label for="material-type">Material Type:</label>
+                <select id="material-type" onchange="calculateWeight()">
+                    <option value="plate-besi">Plate Besi</option>
+                    <option value="round-bar">Round Bar</option>
+                    <option value="square-bar">Square Bar</option>
+                    <!-- Other options will be added dynamically -->
+                </select>
+
+                <!-- Wrap dimension inputs in containers for easy showing/hiding -->
+                <div id="length-container">
+                    <label for="length">Panjang (m):</label>
+                    <input type="number" id="length" min="0" step="0.001" placeholder="Masukkan panjang" oninput="calculateWeight()">
+                </div>
+
+                <div id="width-container">
+                    <label for="width">Lebar (mm):</label>
+                    <input type="number" id="width" min="0" step="0.1" placeholder="Masukkan lebar" oninput="calculateWeight()">
+                </div>
+
+                <div id="width1-container">
+                    <label for="width1">Lebar 1 (mm):</label>
+                    <input type="number" id="width1" min="0" step="0.1" placeholder="Masukkan lebar 1" oninput="calculateWeight()">
+                </div>
+
+                <div id="width2-container">
+                    <label for="width2">Lebar 2 (mm):</label>
+                    <input type="number" id="width2" min="0" step="0.1" placeholder="Masukkan lebar 2" oninput="calculateWeight()">
+                </div>
+
+                <div id="thickness-container">
+                    <label for="thickness">Tebal (mm):</label>
+                    <input type="number" id="thickness" min="0" step="0.1" placeholder="Masukkan tebal" oninput="calculateWeight()">
+                </div>
+
+                <div id="diameter-container">
+                    <label for="diameter">Diameter (mm):</label>
+                    <input type="number" id="diameter" min="0" step="0.1" placeholder="Masukkan diameter" oninput="calculateWeight()">
+                </div>
+
+                <label for="density">Density (g/cm³):</label>
+                <input type="number" id="density" step="0.01" placeholder="Select Density or Enter Manually" oninput="calculateWeight()">
+                <div id="density-suggestions" class="autocomplete-suggestions"></div>
+
+                <!-- Weight and Nesting -->
+                <label for="weight">Weight (kg):</label>
+                <input type="number" id="weight" step="0.01" placeholder="Enter Weight or Calculate" oninput="calculatePricePerPcs()">
+                <button onclick="calculateWeight()">Calculate Weight</button>
+
+                <label for="nesting">Nesting:</label>
+                <input type="number" id="nesting" min="0.01" step="0.01" placeholder="Enter Nesting">
+
+                <!-- Price per PCS and Calculated Cost -->
+                <label for="price-per-pcs">Price per PCS:</label>
+                <input type="number" id="price-per-pcs">
+
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" min="1" placeholder="Enter quantity">
+
+                <label for="calculated-cost-material">Calculated Cost Material:</label>
+                <input type="number" id="calculated-cost-material" readonly>
+
+                <!-- Button to Add Row to Material Table -->
+                <button onclick="addMaterialRow()">Add to Material Table</button>
+            </div>
+
+            <!-- Add formula display div after the dimension inputs -->
+            <div id="formula-display" class="formula-info">
+                <!-- Formula and example will be displayed here -->
+            </div>
+
+            <!-- Table for Material Costs -->
+            <table id="materialTable">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Grade</th>
+                        <th>Weight</th>
+                        <th>Nesting</th>
+                        <th>Price per PCS</th>
+                        <th>Quantity</th>
+                        <th>Total Cost</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- Manufacturing Tab -->
+        <div id="manufacturing" class="tab-content">
+            <h3>Manufacturing</h3>
+            <div class="input-section">
+                <!-- Material Selection Dropdown -->
+                <label for="material-dropdown">Select Material:</label>
+                <select id="material-dropdown" onchange="updateManufacturingFields()">
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <!-- Display selected material details -->
+                <label for="description-manufacturing">Description:</label>
+                <input type="text" id="description-manufacturing" readonly>
+
+                <label for="weight-manufacturing">Weight (kg):</label>
+                <input type="number" id="weight-manufacturing" readonly>
+
+                <label for="grade-manufacturing">Grade:</label>
+                <input type="text" id="grade-manufacturing" readonly>
+
+                <label for="type-manufacturing">Type:</label>
+                <input type="text" id="type-manufacturing" readonly>
+
+                <!-- Service Details -->
+                <div id="services-container" class="scrollable-container">
+                    <div class="service-row">
+                        <button class="collapsible" onclick="toggleCollapsible(this)">Service 1</button>
+                        <div class="collapsible-content">
+                            <label for="service-type-0">Jenis Jasa:</label>
+                            <input type="text" id="service-type-0" placeholder="Enter service type" oninput="showManufacturingServiceSuggestions(0)">
+                            <div id="service-suggestions-0" class="autocomplete-suggestions"></div>
+
+                            <label for="service-rate-0">Rate per PCS:</label>
+                            <input type="number" id="service-rate-0" step="0.01" placeholder="Rate per PCS" oninput="calculateTotalManufacturingCost()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button to Add Another Service -->
+                <button onclick="addServiceRow()">Add Another Service</button>
+
+                <!-- Price per PCS and Calculated Cost -->
+                <label for="quantity-manufacturing">Quantity:</label>
+                <input type="number" id="quantity-manufacturing" min="1" readonly> <!-- Make quantity read-only -->
+
+                <label for="calculated-cost-manufacturing">Total Cost:</label>
+                <input type="number" id="calculated-cost-manufacturing" readonly>
+
+                <!-- Button to Add Row to Manufacturing Table -->
+                <button onclick="addManufacturingRow()">Add to Manufacturing Table</button>
+            </div>
+
+            <!-- Table for Manufacturing Costs -->
+            <table id="manufacturingTable">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Weight</th>
+                        <th>Quantity</th>
+                        <th>Service Details</th> <!-- New Column for Service Details -->
+                        <th>Total Service Cost</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <!----labour tab-->
+
+        <div id="labour" class="tab-content">
+            <h3>Labour</h3>
+            <div class="input-section">
+                <label for="description">Description:</label>
+                <input type="text" id="description-labour" placeholder="Enter Service Type"
+                    oninput="showDescriptionSuggestions('labour')">
+                <div id="description-suggestions-labour" class="autocomplete-suggestions"></div>
+
+                <label for="pricePerPcs">Rate per Hour:</label>
+                <input type="number" id="pricePerPcs-labour" step="0.01" min="0" value="0">
+
+                <label for="duration">Duration (Hours):</label>
+                <input type="number" id="duration-labour" min="1" value="1">
+
+                <label for="quantity">Number of Workers:</label>
+                <input type="number" id="quantity-labour" min="1" value="1">
+
+                <label for="calculated-temp">Calculated Total:</label>
+                <input type="number" id="calculated-temp-labour" readonly>
+
+                <button onclick="addRow('labour')">Add to Table</button>
+            </div>
+
+            <table id="serviceTable-labour" class="service-table">
+                <thead>
+                    <tr>
+                        <th>Service Description</th>
+                        <th>Rate per Hour</th>
+                        <th>Duration (Hours)</th>
+                        <th>Number of Workers</th>
+                        <th>Total Cost</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+
